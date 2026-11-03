@@ -1,0 +1,80 @@
+rules_version = '2';
+// Reglas de seguridad de la web del cumple.
+// Invitados: entran sin cuenta (login anónimo) y solo pueden escribir SUS propios datos.
+// Organizadores: entran con Google y su email debe existir como documento en la colección "admins".
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signed() { return request.auth != null; }
+    function isAdmin() {
+      return signed()
+        && request.auth.token.email is string
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+    function isMe(uid) { return signed() && request.auth.uid == uid; }
+    function txt(field, max) {
+      return request.resource.data.get(field, '') is string
+        && request.resource.data.get(field, '').size() <= max;
+    }
+    function num(field, lo, hi) {
+      return request.resource.data.get(field, 0) is number
+        && request.resource.data.get(field, 0) >= lo
+        && request.resource.data.get(field, 0) <= hi;
+    }
+
+    // Lista de organizadores: se crea a mano desde la consola de Firebase.
+    match /admins/{email} {
+      allow read: if signed() && request.auth.token.email == email;
+      allow write: if false;
+    }
+
+    // Ajustes de la fiesta (hora, precios, Bizum, IBAN...)
+    match /config/{doc} {
+      allow read: if signed();
+      allow write: if isAdmin();
+    }
+
+    // Confirmaciones de asistencia: cada invitado la suya
+    match /rsvp/{uid} {
+      allow read: if signed();
+      allow create, update: if isMe(uid)
+        && txt('nombre', 60) && request.resource.data.nombre.size() > 0
+        && num('adultos', 0, 20) && num('ninos', 0, 20)
+        && request.resource.data.estado in ['si', 'quiza', 'no']
+        && txt('lleva', 120) && txt('mensaje', 400);
+      allow delete: if isAdmin();
+    }
+
+    // Alergias: solo las ve el propio invitado y el organizador
+    match /salud/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create, update: if isMe(uid) && txt('otra', 160);
+      allow delete: if isAdmin();
+    }
+
+    // Votos de color: uno por invitado
+    match /votos/{uid} {
+      allow read: if signed();
+      allow create, update: if isMe(uid) && txt('color', 20);
+      allow delete: if isMe(uid) || isAdmin();
+    }
+
+    // Parejas de los campeonatos (pareja_domino, pareja_billar, pareja_dardos, pareja_pingpong)
+    match /{coll}/{uid} {
+      allow read: if signed() && coll.matches('pareja_(domino|billar|dardos|pingpong)');
+      allow create, update: if coll.matches('pareja_(domino|billar|dardos|pingpong)')
+        && isMe(uid) && txt('nombre', 40) && txt('j1', 40) && txt('j2', 40);
+      allow delete: if coll.matches('pareja_(domino|billar|dardos|pingpong)')
+        && (isMe(uid) || isAdmin());
+    }
+
+    // Lo que solo toca el organizador, pero ven todos
+    match /marcador/{id}     { allow read: if signed(); allow write: if isAdmin(); }
+    match /pagosOk/{id}      { allow read: if signed(); allow write: if isAdmin(); }
+    match /gastos/{id}       { allow read: if signed(); allow write: if isAdmin(); }
+    match /alojamientos/{id} { allow read: if signed(); allow write: if isAdmin(); }
+
+    // Tarjetas de invitación (incluyen teléfonos): solo el organizador
+    match /invitados/{id}    { allow read, write: if isAdmin(); }
+  }
+}
