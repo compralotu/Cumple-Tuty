@@ -268,7 +268,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   <canvas id="confetti" aria-hidden="true"></canvas>
   <div class="l">
     <p class="eyebrow">Estás invitado · Domingo</p>
-    <h1><span id="hostTitle">¡Mi cumple</span><br>el <em>8 de noviembre</em>!</h1>
+    <h1><span id="hostTitle">¡El cumple de Net y Erne</span><br>el <em>8 de noviembre</em>!</h1>
     <div class="meta">
       <span>📅 Domingo, 8 nov 2026</span>
       <span>🕐 <span id="horaTxt">10:30</span></span>
@@ -595,8 +595,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       <h3>Ajustes de la fiesta</h3>
       <form id="cfgForm" style="margin-top:12px">
         <div class="fields">
-          <label for="cfgHost">Cumpleañero<input id="cfgHost" maxlength="40" placeholder="Tu nombre"></label>
-          <label for="cfgHora">Hora<input id="cfgHora" type="time" value="10:30"></label>
+                    <label for="cfgHora">Hora<input id="cfgHora" type="time" value="10:30"></label>
         </div>
         <label for="cfgLugar">Nombre del sitio<input id="cfgLugar" maxlength="80" placeholder="Restaurante, finca, casa…"></label>
         <div class="fields">
@@ -872,7 +871,7 @@ function renderLodgSelect(){
   const off=!sel.value;$('#alojNoches').disabled=off;$('#alojPersonas').disabled=off;
 }
 function inviteText(name){
-  const c=state.cfg;const host=c.anfitrion?` de ${c.anfitrion}`:'';
+  const c=state.cfg;const host=' de Net y Erne';
   return `¡Hola ${name}! 🎉 Te invito al cumpleaños${host} el domingo 8 de noviembre a las ${c.hora||'10:30'}${c.lugar?' en '+c.lugar:''}.\n🍂 La decoración es de otoño. Empezamos a las 10:30 con desayuno, barbacoa, campeonatos y cena cubana. Entra a votar el color de la ropa, apuntarte a los campeonatos y elegir tu menú: ${c.enlace||location.href.split('#')[0]}\n📍 ${MAPS}`;
 }
 function renderCards(){
@@ -904,10 +903,10 @@ function renderBudget(){
 }
 function renderCfg(){
   const c=state.cfg;
-  $('#hostTitle').textContent=c.anfitrion?`¡El cumple de ${c.anfitrion}`:'¡Mi cumple';
+  $('#hostTitle').textContent='¡El cumple de Net y Erne';
   $('#horaTxt').textContent=c.hora||'10:30';$('#lugarTxt').textContent=c.lugar||'Ver ubicación en el mapa';
   if(document.activeElement?.closest('#cfgForm'))return;
-  const m={cfgLimit:'limite',cfgHora:'hora',cfgHost:'anfitrion',cfgLugar:'lugar',cfgLink:'enlace',cfgCub:'cubierto',cfgCubN:'cubiertoNino',cfgBizum:'bizum',cfgIban:'iban',cfgTitular:'titular',cfgLimitePago:'limitePago'};
+  const m={cfgLimit:'limite',cfgHora:'hora',cfgLugar:'lugar',cfgLink:'enlace',cfgCub:'cubierto',cfgCubN:'cubiertoNino',cfgBizum:'bizum',cfgIban:'iban',cfgTitular:'titular',cfgLimitePago:'limitePago'};
   for(const[id,k]of Object.entries(m))$('#'+id).value=c[k]??(k==='hora'?'10:30':'');
 }
 function renderTorneos(){
@@ -1013,7 +1012,7 @@ const simpleForm=(sel,outSel,fn,okTxt)=>$(sel).addEventListener('submit',async e
   try{const t=await fn(ev.target);out.className='msg ok';out.textContent=t||okTxt}catch(e){out.className='msg err';out.textContent=errText(e)}});
 simpleForm('#inviteForm','#invOut',async f=>{const nombre=$('#invName').value.trim();await state.db.collection('invitados').add({nombre,telefono:$('#invPhone').value.trim(),estado:'pendiente',creado:new Date().toISOString()});f.reset();return `Tarjeta de ${nombre} creada.`});
 simpleForm('#cfgForm','#cfgOut',async()=>{const num=id=>$('#'+id).value===''?null:+$('#'+id).value;
-  await state.db.doc('config/fiesta').set({...state.cfg,limite:num('cfgLimit')||0,hora:$('#cfgHora').value||'10:30',anfitrion:$('#cfgHost').value.trim(),lugar:$('#cfgLugar').value.trim(),enlace:$('#cfgLink').value.trim(),
+  await state.db.doc('config/fiesta').set({...state.cfg,limite:num('cfgLimit')||0,hora:$('#cfgHora').value||'10:30',lugar:$('#cfgLugar').value.trim(),enlace:$('#cfgLink').value.trim(),
     cubierto:num('cfgCub'),cubiertoNino:num('cfgCubN'),bizum:$('#cfgBizum').value.trim(),iban:$('#cfgIban').value.trim(),titular:$('#cfgTitular').value.trim(),limitePago:$('#cfgLimitePago').value});document.activeElement?.blur()},'Ajustes guardados.');
 simpleForm('#lodgForm','#lodgOut',async f=>{await state.db.collection('alojamientos').add({nombre:$('#lodgName').value.trim(),precio:+$('#lodgPrice').value||0,plazas:+$('#lodgPlazas').value||null,descripcion:$('#lodgDesc').value.trim()});f.reset()},'Alojamiento añadido.');
 simpleForm('#expForm','#expOut',async()=>{await state.db.collection('gastos').add({concepto:$('#expConcept').value.trim(),categoria:$('#expCat').value,importe:Math.round((+$('#expAmount').value||0)*100)/100,estado:$('#expState').value});$('#expConcept').value='';$('#expAmount').value=''},'Gasto añadido.');
@@ -1058,14 +1057,18 @@ const PHOTOS=[
   {src:'img/cumple4.jpg',cap:'¡Modo fiesta activado!',alt:'La cumpleañera con antifaz plateado levantando una botella en la barra'},
   {src:'img/cumple1.jpg',cap:'Llegando con regalos 🎁',alt:'La cumpleañera caminando de noche con bolsas de regalo y banda de Feliz Cumpleaños'},
   {src:'img/cumple5.jpg',cap:'Antifaz y lentejuelas ✨',alt:'La cumpleañera con antifaz y vestido de lentejuelas riendo junto a la barra'},
+  {src:'img/cumple8.jpg',cap:'Modo fiesta: on 🤡',alt:'Él con sombrero, gafas de luces LED y nariz roja de payaso'},
+  {src:'img/cumple6.jpg',cap:'¡A soplar las velas! 🎂',alt:'Dos personas entran con tartas de cumpleaños mientras los invitados aplauden'},
+  {src:'img/cumple9.jpg',cap:'En el trono ⚔️',alt:'Él sentado en un trono de espadas, con espada y escudo, junto a un caballero con armadura'},
+  {src:'img/cumple7.jpg',cap:'Coronados 👑',alt:'Selfi de la pareja; él lleva una corona dorada de juguete'},
 ];
 const pols=[];let zTop=10;
 function layout(randomize){
   const st=$('#stage');const W=st.clientWidth,H=st.clientHeight;
   pols.forEach((p,i)=>{const n=pols.length;
-    const bx=randomize?(Math.random()-.5)*W*.5:((i-(n-1)/2)*W*.13);
+    const bx=randomize?(Math.random()-.5)*W*.5:((i-(n-1)/2)*W*.56/Math.max(1,n-1));
     const by=randomize?(Math.random()-.5)*H*.35:((i%2?1:-1)*H*.07);
-    p.x=bx;p.y=by;p.r=randomize?(Math.random()-.5)*30:[-9,6,-3,11,-6][i%5];place(p)});
+    p.x=bx;p.y=by;p.r=randomize?(Math.random()-.5)*30:[-9,6,-3,11,-6,8,-12,4,-5][i%9];place(p)});
 }
 function place(p){p.el.style.transform=`translate(calc(-50% + ${p.x}px),calc(-50% + ${p.y}px)) rotate(${p.r}deg)`}
 function openLb(i){lbI=(i+PHOTOS.length)%PHOTOS.length;const ph=PHOTOS[lbI];$('#lbImg').src=ph.src;$('#lbImg').alt=ph.alt;$('#lbCap').textContent=ph.cap;$('#lb').hidden=false;$('#lbClose').focus()}
